@@ -161,6 +161,76 @@ data/
 
 **Note**: Both Train/ and Test/ folders are combined and re-split 80/20 per speaker for balanced distribution.
 
+## 🏗️ Model Architecture
+
+### ECAPA-TDNN (Emphasized Channel Attention, Propagation and Aggregation in TDNN)
+
+The system uses the **ECAPA-TDNN** architecture, a state-of-the-art speaker embedding model that significantly improves upon the original x-vector TDNN architecture.
+
+#### Key Components
+
+**1. Frame-level Feature Extraction**
+
+- **Input**: 80-dimensional Mel-filterbank features (8 kHz sampling)
+- **Conv1D Layer**: Initial 1D convolutional layer (512 channels, kernel size=5)
+- **SE-Res2Blocks**: 3 Squeeze-and-Excitation Res2Net blocks with channel attention
+  - Scale-dimension: 8 (multi-scale receptive fields)
+  - Dilation rates: 2, 3, 4 (increasing temporal context)
+  - SE attention: Recalibrates channel-wise features
+
+**2. Channel Attention Mechanism**
+
+- **Squeeze-and-Excitation (SE)**: Enhances important acoustic features
+- **Multi-scale Processing**: Res2Net blocks capture diverse temporal patterns
+- **Channel Propagation**: Information flow across feature channels
+
+**3. Statistical Pooling**
+
+- **Attentive Statistics Pooling (ASP)**: Learned attention mechanism
+- Aggregates variable-length audio into fixed-size embeddings
+- Combines mean and standard deviation statistics
+- Weighted by attention scores for relevant frames
+
+**4. Embedding Layer**
+
+- **Fully Connected Layers**: 1536 → 192 dimensions
+- **Batch Normalization**: Stabilizes training
+- **Output**: 192-dimensional speaker embeddings
+- **L2 Normalization**: Unit-length embeddings for cosine similarity
+
+**5. Classification Head (Training Only)**
+
+- **AAM-Softmax Loss**: Additive Angular Margin Softmax
+  - Margin: 0.2 (angular separation between speakers)
+  - Scale: 30 (controls gradient flow)
+  - Creates discriminative decision boundaries
+- **Linear Layer**: 192 → 351 speakers
+
+#### Architecture Advantages
+
+✅ **Channel Attention**: Emphasizes discriminative acoustic features  
+✅ **Multi-scale Processing**: Captures both short-term and long-term patterns  
+✅ **Efficient Embeddings**: Compact 192-D representation  
+✅ **Transfer Learning**: Pretrained on VoxCeleb2 (1M+ utterances)  
+✅ **Robustness**: Attentive pooling handles variable-length audio
+
+#### Model Parameters
+
+- **Embedding Dimension**: 192
+- **Channels**: 512, 512, 512, 1536, 192
+- **SE-Res2Block Scales**: 8
+- **Total Parameters**: ~6.3M
+- **Input**: 80-dim MFBs at 8 kHz
+- **Output**: 192-dim embeddings
+
+#### Pretrained Weights
+
+The model is initialized with weights pretrained on **VoxCeleb2**:
+
+- Dataset: 1M+ utterances from 6K+ speakers
+- Language: English (cross-lingual transfer to Hindi/Kannada)
+- Training: Large-scale speaker recognition on diverse audio
+
 ## 🔬 Training Strategy
 
 ### Two-Stage Fine-Tuning
