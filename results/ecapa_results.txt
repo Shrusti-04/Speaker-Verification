@@ -1,0 +1,13 @@
+ECAPA Evaluation Results
+============================================================
+
+eer: 0.0787999999999519
+eer_threshold: 0.18045780062675476
+minDCF: 0.4731999999999999
+dcf_threshold: 0.38528525829315186
+accuracy_at_eer: 0.9212
+far_at_eer: 0.0788
+frr_at_eer: 0.0788
+num_trials: 10000
+num_positive: 5000
+num_negative: 5000

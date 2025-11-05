@@ -1,0 +1,121 @@
+# ECAPA-TDNN Configuration for Speaker Verification - BALANCED DATA EXPERIMENT
+# Model: SpeechBrain ECAPA-TDNN pretrained on VoxCeleb2
+# Experiment: Combined Train+Test data with 80/20 split (40 train files per speaker)
+
+# Model Parameters
+model:
+  name: "ecapa-tdnn"
+  pretrained_path: "speechbrain/spkrec-ecapa-voxceleb"
+  embedding_dim: 192
+  num_speakers: 351 # Updated for your dataset
+  attention_channels: 128
+  channels: [1024, 1024, 1024, 1024, 3072]
+  kernel_sizes: [5, 3, 3, 3, 1]
+  dilations: [1, 2, 3, 4, 1]
+  lin_neurons: 192
+
+# Dataset Parameters
+dataset:
+  data_root: "data"
+  train_dir: "Train"
+  test_dir: "Test"
+  use_combined_data: true # NEW: Load from both Train and Test folders
+  train_split_ratio: 0.8 # NEW: 80% for training, 20% for validation/test
+  sample_rate: 8000 # 8kHz telephone quality
+  num_train_files_per_speaker: 40 # Expected after 80/20 split
+  num_test_files_per_speaker: 10 # Expected after 80/20 split
+  total_speakers: 351
+  min_duration: 2.0 # minimum audio duration in seconds
+  max_duration: 10.0 # maximum audio duration in seconds
+  random_seed: 42 # NEW: For reproducible train/test split
+
+# Feature Extraction
+features:
+  type: "fbank" # Log-Mel Filterbank
+  n_mels: 80
+  n_fft: 512
+  hop_length: 160 # 20ms at 8kHz
+  win_length: 400 # 50ms at 8kHz
+  f_min: 20
+  f_max: 3800 # Nyquist for 8kHz is 4kHz
+  apply_cmvn: true # Cepstral Mean and Variance Normalization
+
+# Data Augmentation
+augmentation:
+  apply: true
+  prob_augment: 0.3 # Reduced for faster training
+  noise:
+    apply: true
+    snr_low: 5
+    snr_high: 15
+  reverb:
+    apply: false # Disabled for speed
+    room_sizes: [0.1, 0.5, 1.0]
+  speed_perturb:
+    apply: false # Disabled for speed
+    speeds: [0.95, 1.0, 1.05]
+  time_masking:
+    apply: true
+    max_mask_time: 10
+    num_masks: 1 # Reduced
+  freq_masking:
+    apply: true
+    max_mask_freq: 10
+    num_masks: 1 # Reduced
+
+# Training Parameters
+training:
+  batch_size: 32
+  num_epochs: 15
+  learning_rate: 0.00005
+  weight_decay: 0.0001
+  optimizer: "adam"
+  scheduler: "reduce_on_plateau"
+  patience: 5
+  freeze_encoder_epochs: 0
+  gradient_clip: 5.0
+  loss_function: "aam_softmax" # Additive Angular Margin Softmax
+  margin: 0.2
+  scale: 30
+
+# Validation Parameters
+validation:
+  val_split: 0.1 # Use 10% of training data for validation
+  check_interval: 1 # Validate every epoch
+  metric: "eer" # Equal Error Rate
+
+# Verification Parameters
+verification:
+  similarity_metric: "cosine" # or "plda"
+  threshold: 0.5 # Will be optimized based on EER
+  use_score_normalization: true
+
+# Checkpoint Parameters
+checkpoint:
+  save_dir: "checkpoints/ecapa_balanced" # CHANGED: Separate checkpoint directory
+  save_best_only: true
+  monitor: "val_eer"
+  mode: "min"
+
+# Logging
+logging:
+  log_dir: "logs/ecapa_balanced" # CHANGED: Separate log directory
+  tensorboard: true
+  wandb: false
+  print_interval: 10
+
+# Hardware
+hardware:
+  device: "cuda" # or "cpu"
+  num_workers: 2 # Increased for GPU
+  pin_memory: true # Enabled for GPU training
+  mixed_precision: false # Can enable for faster training
+
+# Evaluation
+evaluation:
+  metrics: ["eer", "minDCF"]
+  dcf_p_target: 0.01
+  dcf_c_miss: 1
+  dcf_c_fa: 1
+  visualization: true
+  save_embeddings: true

@@ -1,0 +1,117 @@
+# ECAPA-TDNN Configuration for Speaker Verification
+# Model: SpeechBrain ECAPA-TDNN pretrained on VoxCeleb2
+
+# Model Parameters
+model:
+  name: "ecapa-tdnn"
+  pretrained_path: "speechbrain/spkrec-ecapa-voxceleb"
+  embedding_dim: 192
+  num_speakers: 351 # Updated for your dataset
+  attention_channels: 128
+  channels: [1024, 1024, 1024, 1024, 3072]
+  kernel_sizes: [5, 3, 3, 3, 1]
+  dilations: [1, 2, 3, 4, 1]
+  lin_neurons: 192
+
+# Dataset Parameters
+dataset:
+  data_root: "data"
+  train_dir: "Train"
+  test_dir: "Test"
+  sample_rate: 8000 # 8kHz telephone quality
+  num_train_files_per_speaker: 3
+  num_test_files_per_speaker: 25
+  total_speakers: 351
+  min_duration: 2.0 # minimum audio duration in seconds
+  max_duration: 10.0 # maximum audio duration in seconds
+
+# Feature Extraction
+features:
+  type: "fbank" # Log-Mel Filterbank
+  n_mels: 80
+  n_fft: 512
+  hop_length: 160 # 20ms at 8kHz
+  win_length: 400 # 50ms at 8kHz
+  f_min: 20
+  f_max: 3800 # Nyquist for 8kHz is 4kHz
+  apply_cmvn: true # Cepstral Mean and Variance Normalization
+
+# Data Augmentation
+augmentation:
+  apply: true
+  prob_augment: 0.3 # Reduced for faster training
+  noise:
+    apply: true
+    snr_low: 5
+    snr_high: 15
+  reverb:
+    apply: false # Disabled for speed
+    room_sizes: [0.1, 0.5, 1.0]
+  speed_perturb:
+    apply: false # Disabled for speed
+    speeds: [0.95, 1.0, 1.05]
+  time_masking:
+    apply: true
+    max_mask_time: 10
+    num_masks: 1 # Reduced
+  freq_masking:
+    apply: true
+    max_mask_freq: 10
+    num_masks: 1 # Reduced
+
+# Training Parameters
+training:
+  batch_size: 32 # Original batch size for better convergence
+  num_epochs: 30 # Extended: 15 more epochs to fine-tune encoder
+  learning_rate: 0.00005 # Reduced for fine-tuning (half of original)
+  weight_decay: 0.0001
+  optimizer: "adam"
+  scheduler: "reduce_on_plateau"
+  patience: 5 # Increased patience for fine-tuning phase
+  freeze_encoder_epochs: 0 # No freezing - continue from checkpoint with unfrozen encoder
+  gradient_clip: 5.0
+  loss_function: "aam_softmax" # Additive Angular Margin Softmax
+  margin: 0.2
+  scale: 30
+
+# Validation Parameters
+validation:
+  val_split: 0.1 # Use 10% of training data for validation
+  check_interval: 1 # Validate every epoch
+  metric: "eer" # Equal Error Rate
+
+# Verification Parameters
+verification:
+  similarity_metric: "cosine" # or "plda"
+  threshold: 0.5 # Will be optimized based on EER
+  use_score_normalization: true
+
+# Checkpoint Parameters
+checkpoint:
+  save_dir: "checkpoints/ecapa"
+  save_best_only: true
+  monitor: "val_eer"
+  mode: "min"
+
+# Logging
+logging:
+  log_dir: "logs/ecapa"
+  tensorboard: true
+  wandb: false
+  print_interval: 10
+
+# Hardware
+hardware:
+  device: "cuda" # or "cpu"
+  num_workers: 0 # Set to 0 for Windows compatibility
+  pin_memory: false # Disabled for CPU training
+  mixed_precision: false # Disabled for CPU training
+
+# Evaluation
+evaluation:
+  metrics: ["eer", "minDCF"]
+  dcf_p_target: 0.01
+  dcf_c_miss: 1
+  dcf_c_fa: 1
+  visualization: true
+  save_embeddings: true

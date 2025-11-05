@@ -1,0 +1,43 @@
+# Core Deep Learning Framework
+torch>=2.0.0
+torchaudio>=2.0.0
+torchvision>=0.15.0
+
+# Audio Processing
+librosa>=0.10.0
+soundfile>=0.12.0
+
+# SpeechBrain (for ECAPA-TDNN)
+speechbrain>=0.5.15
+
+# NVIDIA NeMo (for TiTANet)
+# Note: NeMo installation can be complex, see README for details
+# nemo_toolkit[asr]>=1.20.0
+
+# Scientific Computing
+numpy>=1.24.0
+scipy>=1.10.0
+
+# Machine Learning
+scikit-learn>=1.3.0
+
+# Visualization
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Data Processing
+pandas>=2.0.0
+pyyaml>=6.0
+
+# Progress Bar
+tqdm>=4.65.0
+
+# Optional: For better performance
+# ninja  # For faster compilation
+# numba  # For faster numpy operations
+
+# Optional: Weights & Biases for experiment tracking
+# wandb>=0.15.0
+
+# Optional: TensorBoard for logging
+# tensorboard>=2.13.0

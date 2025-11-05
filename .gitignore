@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# PyTorch
+*.pth
+*.pt
+*.ckpt
+
+# Large data directories - do not push audio files
+data/Train/
+data/Test/
+
+# Model checkpoints - too large for GitHub
+checkpoints/
+pretrained_models/
+
+# Training logs
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Results (optional - uncomment if you want to exclude results)
+# results/
+
+# Temporary files
+*.tmp
+*.bak
+*.log
