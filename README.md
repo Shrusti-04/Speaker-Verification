@@ -7,6 +7,7 @@ A deep learning-based speaker verification system implementing **ECAPA-TDNN** ar
 - [Overview](#overview)
 - [Key Achievements](#key-achievements)
 - [Features](#features)
+- [Getting Started](#getting-started)
 - [Dataset](#dataset)
 - [Project Structure](#project-structure)
 - [Model Architecture](#model-architecture)
@@ -66,6 +67,61 @@ This project implements a state-of-the-art speaker verification system designed 
 - ✅ Score distribution plots (genuine vs impostor)
 - ✅ t-SNE embedding space visualization
 - ✅ Batch verification for multiple samples
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- **Git LFS** (Large File Storage) - Required to download model checkpoints
+- Python 3.8 or higher
+- CUDA-capable GPU (recommended) or Google Colab
+
+### Clone Repository
+
+This repository uses **Git LFS** for storing large model checkpoint files (488 MB). You need to install Git LFS before cloning:
+
+```bash
+# Step 1: Install Git LFS (one-time setup)
+# Windows: Download from https://git-lfs.github.com/
+# Mac: brew install git-lfs
+# Linux: sudo apt-get install git-lfs
+
+# Step 2: Initialize Git LFS
+git lfs install
+
+# Step 3: Clone the repository (models will download automatically)
+git clone https://github.com/Shrusti-04/Speaker-Verification.git
+cd Speaker-Verification
+```
+
+**Note:** Without Git LFS, checkpoint files will be downloaded as small pointer files and the models won't work.
+
+### Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+**Key Dependencies:**
+
+- `torch>=2.0.0` - PyTorch deep learning framework
+- `torchaudio>=2.0.0` - Audio processing
+- `speechbrain>=0.5.0` - ECAPA-TDNN pretrained models
+- `scikit-learn>=1.3.0` - Evaluation metrics
+- `matplotlib>=3.7.0` - Visualization
+
+### Verify Setup
+
+```bash
+# Check if checkpoint files downloaded correctly
+ls -lh checkpoints/ecapa_balanced/best_model.pt  # Should show ~244 MB
+
+# Quick test
+python demo.py single \
+    --model checkpoints/ecapa_balanced/best_model.pt \
+    --enroll data/Train/1034/1034_trn_vp_a_1.wav \
+    --test data/Test/1034/1034_tst_vp_a_001.wav
+```
 
 ## 📁 Project Structure
 
@@ -137,12 +193,14 @@ data/
 ### Two-Stage Fine-Tuning
 
 **Stage 1: Frozen Encoder (Epochs 1-5)**
+
 - Encoder weights frozen (pretrained from VoxCeleb2)
 - Only classifier layer trains
 - Adapts to 351 speakers
 - Faster convergence
 
 **Stage 2: Full Training (Epochs 6-15)**
+
 - All layers unfrozen
 - End-to-end fine-tuning
 - Adapts to Hindi/Kannada audio characteristics
@@ -158,6 +216,7 @@ data/
 ### Data Augmentation
 
 Applied randomly during training:
+
 - **Speed Perturbation**: 0.95x, 1.0x, 1.05x (33% each)
 - **Additive Noise**: White noise, SNR 0-15 dB
 - **Reverberation**: Simulates room acoustics
@@ -206,22 +265,24 @@ Measures similarity between speaker embeddings:
 
 ### Performance Metrics (Balanced Implementation)
 
-| Metric | Value |
-|--------|-------|
-| **Test EER** | **7.88%** |
-| **Test Accuracy** | **88.7%** |
-| **Validation EER** | 4.41% |
-| **Training Files** | 13,725 |
-| **Test Files** | 3,605 |
+| Metric                        | Value     |
+| ----------------------------- | --------- |
+| **Test EER**                  | **7.88%** |
+| **Test Accuracy**             | **88.7%** |
+| **Validation EER**            | 4.41%     |
+| **Training Files**            | 13,725    |
+| **Test Files**                | 3,605     |
 | **Improvement over Baseline** | **68.4%** |
 
 ### Demo Testing Results
 
 **Genuine Verification (Speaker 1034 vs 1034):**
+
 - 10/10 correct acceptances (100% accuracy)
 - Similarity scores: 0.5071 to 0.7101
 
 **Impostor Detection (Speaker 1034 vs 1037):**
+
 - 4/4 correct rejections (100% accuracy)
 - Similarity scores: -0.0598 to 0.0589
 
@@ -239,25 +300,25 @@ Measures similarity between speaker embeddings:
 
 ![Training History](paper/figures/training_history.png)
 
-*Training and validation loss/accuracy curves over 15 epochs showing two-stage fine-tuning (encoder frozen until epoch 5, then fully trained)*
+_Training and validation loss/accuracy curves over 15 epochs showing two-stage fine-tuning (encoder frozen until epoch 5, then fully trained)_
 
 ### ROC Curve
 
 ![ROC Curve](results/ecapa_roc_curve.png)
 
-*Receiver Operating Characteristic curve showing the trade-off between True Positive Rate and False Positive Rate at different thresholds*
+_Receiver Operating Characteristic curve showing the trade-off between True Positive Rate and False Positive Rate at different thresholds_
 
 ### Score Distribution
 
 ![Score Distribution](results/ecapa_score_distribution.png)
 
-*Distribution of cosine similarity scores for genuine (same speaker) and impostor (different speaker) pairs, demonstrating clear separation*
+_Distribution of cosine similarity scores for genuine (same speaker) and impostor (different speaker) pairs, demonstrating clear separation_
 
 ### t-SNE Embedding Visualization
 
 ![t-SNE Visualization](results/ecapa_tsne.png)
 
-*2D visualization of 192-dimensional speaker embeddings using t-SNE, showing distinct clustering of different speakers*
+_2D visualization of 192-dimensional speaker embeddings using t-SNE, showing distinct clustering of different speakers_
 
 ## 📚 References
 
