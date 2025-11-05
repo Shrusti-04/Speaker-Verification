@@ -1,70 +1,74 @@
 # Speaker Verification System for Regional Languages (Hindi & Kannada)
 
-A comprehensive speaker verification system implementing and comparing **ECAPA-TDNN** and **TiTANet** architectures for regional language (Hindi and Kannada) speaker recognition.
+A deep learning-based speaker verification system implementing **ECAPA-TDNN** architecture for regional language (Hindi and Kannada) speaker recognition, achieving **7.88% EER** with balanced data distribution.
 
 ## 📋 Table of Contents
 
 - [Overview](#overview)
+- [Key Achievements](#key-achievements)
 - [Features](#features)
 - [Dataset](#dataset)
 - [Installation](#installation)
 - [Project Structure](#project-structure)
 - [Usage](#usage)
-- [Model Architectures](#model-architectures)
+- [Model Architecture](#model-architecture)
+- [Training Strategy](#training-strategy)
 - [Evaluation Metrics](#evaluation-metrics)
 - [Results](#results)
+- [Demo](#demo)
 - [References](#references)
 
 ## 🎯 Overview
 
-This project implements a state-of-the-art speaker verification system designed for regional Indian languages, specifically Hindi and Kannada. It provides:
+This project implements a state-of-the-art speaker verification system designed for regional Indian languages, specifically Hindi and Kannada. The system:
 
-- **Two Model Architectures**: ECAPA-TDNN (SpeechBrain) and TiTANet (NVIDIA NeMo)
-- **Fine-tuning Pipeline**: Adaptation from VoxCeleb pretrained models
-- **Comprehensive Evaluation**: EER, minDCF, ROC curves, t-SNE visualizations
-- **Robust Training**: Data augmentation (noise, reverb, speed perturbation)
-- **Multiple Scoring Methods**: Cosine similarity and PLDA
+- **ECAPA-TDNN Architecture**: Fine-tuned from VoxCeleb2 pretrained model
+- **Balanced Data Distribution**: Per-speaker 80/20 train/test split
+- **Comprehensive Evaluation**: EER, accuracy, ROC curves, t-SNE visualizations
+- **Robust Training**: Two-stage fine-tuning with data augmentation
+- **Production-Ready**: Interactive demo with batch verification support
+
+## 🏆 Key Achievements
+
+- ✅ **7.88% Test EER** with balanced data distribution
+- ✅ **88.7% Accuracy** on Hindi/Kannada speaker verification
+- ✅ **68.4% Relative Improvement** over imbalanced baseline (24.90% → 7.88%)
+- ✅ **100% Demo Accuracy** on genuine verification (10/10) and impostor rejection (4/4)
+- ✅ **351 Speakers** with 17,330 audio files
+- ✅ **Two-Stage Fine-Tuning** with encoder freezing strategy
 
 ## ✨ Features
 
 ### Data Processing
 
+- ✅ Balanced per-speaker 80/20 split (13,725 train / 3,605 test files)
 - ✅ Automatic audio preprocessing (8kHz mono)
-- ✅ Variable-length audio handling
-- ✅ Train/test split management
-- ✅ Speaker-based data organization
-
-### Feature Extraction
-
-- ✅ 80-dimensional log-Mel filterbanks (FBANK)
-- ✅ Cepstral Mean and Variance Normalization (CMVN)
-- ✅ Optional delta and delta-delta features
-- ✅ Online feature extraction for streaming
+- ✅ Variable-length audio handling (2-10 seconds)
+- ✅ Speaker-based data organization (351 speakers)
 
 ### Data Augmentation
 
-- ✅ Additive noise (configurable SNR)
+- ✅ Speed perturbation (0.95x, 1.0x, 1.05x)
+- ✅ Additive white noise (SNR 0-15 dB)
 - ✅ Reverberation simulation
-- ✅ Speed perturbation (0.95x - 1.05x)
-- ✅ SpecAugment (time and frequency masking)
 
 ### Model Training
 
-- ✅ Pretrained model loading (VoxCeleb2)
-- ✅ Fine-tuning with AAM-Softmax loss
-- ✅ Learning rate scheduling
-- ✅ Gradient clipping
-- ✅ Automatic mixed precision (AMP)
-- ✅ Checkpoint management
+- ✅ Pretrained ECAPA-TDNN from VoxCeleb2
+- ✅ Two-stage fine-tuning (frozen encoder → full training)
+- ✅ AAM-Softmax loss with margin=0.2, scale=30
+- ✅ Adam optimizer with lr=0.0001
+- ✅ Automatic checkpoint saving (best validation accuracy)
+- ✅ Training history visualization
 
 ### Evaluation
 
-- ✅ Equal Error Rate (EER)
-- ✅ Minimum Detection Cost Function (minDCF)
-- ✅ ROC and DET curves
-- ✅ Score distribution plots
-- ✅ t-SNE visualization
-- ✅ Confusion matrices
+- ✅ Equal Error Rate (EER) computation
+- ✅ Accuracy metrics on test set
+- ✅ ROC curves with visualization
+- ✅ Score distribution plots (genuine vs impostor)
+- ✅ t-SNE embedding space visualization
+- ✅ Batch verification for multiple samples
 
 ## 📊 Dataset
 
@@ -72,11 +76,14 @@ This project implements a state-of-the-art speaker verification system designed 
 
 - **Languages**: Hindi and Kannada
 - **Total Speakers**: 351
-- **Training Files**: 3 per speaker (1,053 total)
-- **Test Files**: 25 per speaker (8,775 total)
+- **Total Audio Files**: 17,330
+- **Files per Speaker**: ~49 (average)
+- **Data Split**:
+  - **Balanced**: 80% train (13,725 files) / 20% test (3,605 files) per speaker
+  - **Imbalanced Baseline**: 3 train files per speaker from Train/ folder only
 - **Audio Format**:
   - Sample rate: 8 kHz (telephone quality)
-  - Duration: ~6 seconds per file
+  - Duration: Variable (~2-10 seconds)
   - Channels: Mono
   - Bit depth: 16-bit
   - Format: WAV
@@ -86,31 +93,37 @@ This project implements a state-of-the-art speaker verification system designed 
 ```
 data/
 ├── Train/
-│   ├── {speaker_id}/
-│   │   ├── {id}_trn_vp_a_1.wav
-│   │   ├── {id}_trn_vp_a_2.wav
-│   │   └── {id}_trn_vp_a_3.wav
+│   ├── 1034/
+│   │   ├── 1034_trn_vp_a_1.wav
+│   │   ├── 1034_trn_vp_a_2.wav
+│   │   └── ... (~49 files)
+│   ├── 1037/
+│   └── ... (351 speakers)
 └── Test/
-    ├── {speaker_id}/
-    │   ├── {id}_tst_vp_a_001.wav
-    │   ├── {id}_tst_vp_a_002.wav
-    │   └── ... (25 files total)
+    ├── 1034/
+    │   ├── 1034_tst_vp_a_001.wav
+    │   ├── 1034_tst_vp_a_002.wav
+    │   └── ... (~49 files)
+    ├── 1037/
+    └── ... (351 speakers)
 ```
+
+**Note**: With balanced splitting enabled in config, both Train/ and Test/ folders are combined and re-split 80/20 per speaker for better performance.
 
 ## 🚀 Installation
 
 ### Prerequisites
 
 - Python 3.8 or higher
-- CUDA 11.8+ (for GPU support)
-- 16GB+ RAM recommended
-- 10GB+ free disk space
+- CUDA 11.8+ (for GPU support) or Google Colab with Tesla T4
+- 8GB+ RAM recommended
+- 5GB+ free disk space (excluding dataset)
 
 ### Step 1: Clone Repository
 
 ```bash
-git clone <your-repo-url>
-cd REU2
+git clone https://github.com/Shrusti-04/Speaker-Verification.git
+cd Speaker-Verification
 ```
 
 ### Step 2: Create Virtual Environment
@@ -130,237 +143,400 @@ venv\Scripts\activate  # Windows
 ### Step 3: Install Dependencies
 
 ```bash
-# Install PyTorch (with CUDA support)
-pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cu118
-
-# Install other dependencies
+# Install all dependencies
 pip install -r requirements.txt
-
-# Install SpeechBrain
-pip install speechbrain
-
-# Optional: Install NVIDIA NeMo (for TiTANet)
-# Note: This requires additional setup, see NeMo documentation
-pip install nemo_toolkit[asr]
 ```
+
+**Key Dependencies:**
+
+- `torch>=2.0.0` - PyTorch deep learning framework
+- `torchaudio>=2.0.0` - Audio processing
+- `speechbrain>=0.5.0` - ECAPA-TDNN pretrained models
+- `scikit-learn>=1.3.0` - Evaluation metrics
+- `matplotlib>=3.7.0` - Visualization
+- `pyyaml>=6.0` - Configuration management
 
 ### Step 4: Verify Installation
 
 ```bash
 python -c "import torch; print(f'PyTorch: {torch.__version__}')"
+python -c "import speechbrain; print('SpeechBrain OK')"
 python -c "import torchaudio; print(f'TorchAudio: {torchaudio.__version__}')"
-python -c "import speechbrain; print('SpeechBrain installed successfully')"
 ```
 
 ## 📁 Project Structure
 
 ```
-REU2/
-├── config/                      # Configuration files
-│   ├── ecapa_config.yaml       # ECAPA-TDNN configuration
-│   └── titanet_config.yaml     # TiTANet configuration
-├── src/                        # Source code
-│   ├── __init__.py
-│   ├── dataset.py             # Dataset loading and preprocessing
-│   ├── features.py            # Feature extraction (FBANK)
-│   ├── augmentation.py        # Data augmentation
-│   ├── evaluation.py          # Evaluation metrics (EER, minDCF)
-│   ├── verification.py        # Verification module (Cosine, PLDA)
-│   ├── visualization.py       # Plotting and visualization
-│   └── models/                # Model implementations
-│       ├── __init__.py
-│       ├── ecapa_tdnn.py      # ECAPA-TDNN wrapper
-│       └── titanet.py         # TiTANet wrapper
-├── data/                       # Dataset directory
-│   ├── Train/                 # Training data
-│   └── Test/                  # Test data
-├── train.py                   # Training script
-├── evaluate.py                # Evaluation script
-├── requirements.txt           # Python dependencies
-└── README.md                  # This file
+Speaker-Verification/
+├── config/                          # Configuration files
+│   ├── ecapa_balanced_config.yaml  # Balanced split (7.88% EER)
+│   └── ecapa_config.yaml           # Imbalanced baseline (24.90% EER)
+├── src/                            # Source code
+│   ├── dataset.py                  # Dataset with balanced splitting
+│   ├── augmentation.py             # Audio augmentation
+│   ├── evaluation.py               # EER and metrics computation
+│   ├── verification.py             # Cosine similarity verification
+│   ├── visualization.py            # Plotting utilities
+│   └── models/
+│       ├── ecapa_tdnn.py          # ECAPA-TDNN wrapper + AAMSoftmax
+│       └── __init__.py
+├── data/                           # Dataset (not pushed to GitHub)
+│   ├── Train/                     # 351 speakers with audio files
+│   └── Test/                      # 351 speakers with audio files
+├── checkpoints/                    # Trained models (not pushed)
+│   ├── ecapa/                     # Imbalanced baseline
+│   └── ecapa_balanced/            # Best model (7.88% EER)
+├── logs/                           # Training logs (not pushed)
+├── results/                        # Evaluation outputs
+│   ├── ecapa_results.txt          # Metrics
+│   ├── ecapa_roc_curve.png        # ROC curve
+│   ├── ecapa_score_distribution.png
+│   └── ecapa_tsne.png
+├── paper/                          # Documentation
+│   ├── EXPERIMENTAL_SETUP.md
+│   ├── TRAINING_LOG.md
+│   ├── PROJECT_SUMMARY.md
+│   └── figures/
+├── train.py                        # Main training script
+├── evaluate.py                     # Evaluation script
+├── demo.py                         # Interactive verification demo
+├── requirements.txt                # Dependencies
+├── FILE_INDEX.md                   # Complete file documentation
+└── README.md                       # This file
 ```
+
+**Note**: Large files (data, checkpoints, logs) are excluded via `.gitignore`.
 
 ## 🎓 Usage
 
-### 1. Configure Training
+### 1. Prepare Dataset
 
-Edit `config/ecapa_config.yaml` or `config/titanet_config.yaml` to customize:
+Organize your audio files in the `data/` directory:
 
-- Model parameters (embedding dimension, architecture)
-- Training hyperparameters (learning rate, batch size, epochs)
-- Data augmentation settings
-- Hardware settings (GPU/CPU, workers)
-
-### 2. Train ECAPA-TDNN Model
-
-```bash
-python train.py --config config/ecapa_config.yaml --model ecapa
+```
+data/
+├── Train/
+│   ├── speaker_id_1/
+│   │   └── *.wav files
+│   └── speaker_id_2/
+│       └── *.wav files
+└── Test/
+    ├── speaker_id_1/
+    └── speaker_id_2/
 ```
 
-### 3. Train TiTANet Model
+### 2. Configure Training
+
+Edit `config/ecapa_balanced_config.yaml` to customize:
+
+- `use_combined_dataset: true` - Enable balanced 80/20 split
+- `train_split: 0.8` - Train/test ratio per speaker
+- `batch_size: 32` - Batch size (adjust for GPU memory)
+- `learning_rate: 0.0001` - Learning rate
+- `max_epochs: 15` - Number of training epochs
+- `freeze_encoder_epochs: 5` - Epochs to freeze encoder
+
+### 3. Train Model
 
 ```bash
-python train.py --config config/titanet_config.yaml --model titanet
+# Train with balanced data (recommended)
+python train.py --config config/ecapa_balanced_config.yaml
+
+# Train with imbalanced data (baseline)
+python train.py --config config/ecapa_config.yaml
 ```
+
+**Training Progress:**
+
+- Epoch 1-5: Encoder frozen, only classifier trains
+- Epoch 6-15: Full model training with unfrozen encoder
+- Best model saved based on validation accuracy
+- Training history plots saved to `logs/`
+
+**Expected Training Time:**
+
+- Google Colab Tesla T4: ~4-5 hours for 15 epochs
+- Local GPU (RTX 3080): ~2-3 hours
 
 ### 4. Evaluate Model
 
 ```bash
-# Evaluate ECAPA-TDNN with cosine similarity
-python evaluate.py \
-    --config config/ecapa_config.yaml \
-    --checkpoint checkpoints/ecapa/best_model.pt \
-    --model ecapa \
-    --scorer cosine
+# Evaluate best model
+python evaluate.py --config config/ecapa_balanced_config.yaml
 
-# Evaluate with PLDA scoring
+# Evaluate specific checkpoint
 python evaluate.py \
-    --config config/ecapa_config.yaml \
-    --checkpoint checkpoints/ecapa/best_model.pt \
-    --model ecapa \
-    --scorer plda \
-    --num-pairs 10000
+    --config config/ecapa_balanced_config.yaml \
+    --checkpoint checkpoints/ecapa_balanced/best_model.pt
 ```
 
-### 5. Compare Models
+**Evaluation Outputs:**
+
+- `results/ecapa_results.txt` - EER, accuracy metrics
+- `results/ecapa_roc_curve.png` - ROC curve visualization
+- `results/ecapa_score_distribution.png` - Score histograms
+- `results/ecapa_tsne.png` - Embedding space visualization
+
+### 5. Interactive Demo
 
 ```bash
-# Evaluate both models
-python evaluate.py --config config/ecapa_config.yaml --checkpoint checkpoints/ecapa/best_model.pt --model ecapa
-python evaluate.py --config config/titanet_config.yaml --checkpoint checkpoints/titanet/best_model.pt --model titanet
+# Single verification
+python demo.py single \
+    --model checkpoints/ecapa_balanced/best_model.pt \
+    --enroll data/Train/1034/1034_trn_vp_a_1.wav \
+    --test data/Test/1034/1034_tst_vp_a_001.wav
+
+# Batch verification (enroll multiple + test multiple)
+python demo.py batch \
+    --model checkpoints/ecapa_balanced/best_model.pt \
+    --enroll-dir data/Train/1034 \
+    --test-dir data/Test/1034
 ```
 
-### 6. Custom Verification
+**Demo Output Example:**
 
-```python
-from src.models.ecapa_tdnn import ECAPA_TDNN_Wrapper
-from src.verification import SpeakerVerifier
+```
+Enrollment: Processing 3 audio files...
+Enrollment embedding created successfully
 
-# Load model
-model = ECAPA_TDNN_Wrapper(embedding_dim=192, num_speakers=351)
-model.load_checkpoint("checkpoints/ecapa/best_model.pt")
+Testing against 10 audio files...
+[✓] 1034_tst_vp_a_001.wav - MATCH (similarity: 0.7101)
+[✓] 1034_tst_vp_a_002.wav - MATCH (similarity: 0.6845)
+...
 
-# Create verifier
-verifier = SpeakerVerifier(model, scorer_type="cosine")
-
-# Enroll speaker
-enrollment_files = ["data/Train/1034/1034_trn_vp_a_1.wav",
-                    "data/Train/1034/1034_trn_vp_a_2.wav",
-                    "data/Train/1034/1034_trn_vp_a_3.wav"]
-enrollment_embedding = verifier.enroll_speaker(enrollment_files)
-
-# Verify test audio
-is_same, score = verifier.verify(
-    enrollment_embedding,
-    "data/Test/1034/1034_tst_vp_a_001.wav",
-    threshold=0.5
-)
-
-print(f"Same speaker: {is_same}, Score: {score:.4f}")
+Results at threshold 0.50:
+  Genuine: 10/10 correct (100.0%)
+  Impostor: 4/4 correct (100.0%)
 ```
 
-## 🏗️ Model Architectures
+## 🏗️ Model Architecture
 
 ### ECAPA-TDNN (Emphasized Channel Attention, Propagation and Aggregation in TDNN)
 
 - **Source**: [SpeechBrain](https://huggingface.co/speechbrain/spkrec-ecapa-voxceleb)
-- **Pretrained on**: VoxCeleb2
-- **Embedding Dimension**: 192
-- **Key Features**:
-  - SE-Res2Block with channel attention
-  - Multi-layer feature aggregation
-  - Attentive statistical pooling
-  - AAM-Softmax loss for training
+- **Pretrained on**: VoxCeleb2 (English speakers)
+- **Embedding Dimension**: 192-D
+- **Input**: Raw waveform at 8 kHz
+- **Output**: 192-dimensional speaker embedding
 
-### TiTANet (TItanet Transformer Attentive Network)
+**Architecture Components:**
 
-- **Source**: [NVIDIA NeMo](https://huggingface.co/nvidia/speakerverification_en_titanet_large)
-- **Pretrained on**: VoxCeleb
-- **Embedding Dimension**: 192
-- **Key Features**:
-  - Transformer-based architecture
-  - Multi-head self-attention
-  - Squeeze-and-excitation blocks
-  - Superior performance on long utterances
+- **SE-Res2Block**: Squeeze-and-Excitation with channel attention
+- **Multi-layer Feature Aggregation**: Combines features from multiple layers
+- **Attentive Statistical Pooling**: Weighted pooling across time
+- **AAM-Softmax Loss**: Additive Angular Margin for better discrimination
+  - Margin: 0.2
+  - Scale: 30
+
+**Model Size**: ~6.19M parameters
+
+## 🔬 Training Strategy
+
+### Two-Stage Fine-Tuning
+
+**Stage 1: Frozen Encoder (Epochs 1-5)**
+
+- Encoder weights frozen (pretrained from VoxCeleb2)
+- Only classifier layer trains
+- Adapts to 351 speakers
+- Faster convergence
+
+**Stage 2: Full Training (Epochs 6-15)**
+
+- All layers unfrozen
+- End-to-end fine-tuning
+- Adapts to Hindi/Kannada audio characteristics
+- Achieves final performance
+
+### Data Distribution Strategy
+
+**Balanced Split (Recommended):**
+
+- Combines Train/ and Test/ folders
+- Splits 80/20 per speaker
+- Result: 13,725 train / 3,605 test files
+- **Achieved 7.88% EER**
+
+**Imbalanced Baseline:**
+
+- Uses Train/ folder only (3 files/speaker)
+- Result: 1,053 train / 8,775 test files
+- Achieved 24.90% EER (poor performance)
+
+### Data Augmentation
+
+Applied randomly during training:
+
+- **Speed Perturbation**: 0.95x, 1.0x, 1.05x (33% each)
+- **Additive Noise**: White noise, SNR 0-15 dB
+- **Reverberation**: Simulates room acoustics
+
+### Hyperparameters
+
+- **Optimizer**: Adam
+- **Learning Rate**: 0.0001 (constant)
+- **Batch Size**: 32
+- **Max Epochs**: 15
+- **Loss Function**: AAM-Softmax (margin=0.2, scale=30)
+- **Hardware**: Google Colab Tesla T4 GPU
+- **Training Time**: ~4-5 hours
 
 ## 📈 Evaluation Metrics
 
 ### Equal Error Rate (EER)
 
-The point where False Acceptance Rate (FAR) equals False Rejection Rate (FRR). Lower is better.
+The threshold where False Acceptance Rate (FAR) equals False Rejection Rate (FRR).
 
-### Minimum Detection Cost Function (minDCF)
+- **Lower is better**
+- Our Result: **7.88% EER**
 
-```
-DCF = C_miss × P_miss × P_target + C_fa × P_fa × (1 - P_target)
-```
+### Accuracy
 
-Where:
+Percentage of correct verification decisions (genuine acceptance + impostor rejection).
 
-- C_miss = Cost of missing a target (default: 1)
-- C_fa = Cost of false alarm (default: 1)
-- P_target = Prior probability of target speaker (default: 0.01)
+- Our Result: **88.7% accuracy**
+
+### Cosine Similarity Scoring
+
+Measures similarity between speaker embeddings:
+
+- Range: [-1, 1]
+- Higher values indicate same speaker
+- Threshold: 0.50 (optimized for EER)
 
 ### Visualization Outputs
 
 - **ROC Curves**: True Positive Rate vs False Positive Rate
-- **DET Curves**: Detection Error Tradeoff curves
 - **Score Distributions**: Genuine vs impostor score histograms
-- **t-SNE Plots**: 2D visualization of speaker embeddings
-- **Confusion Matrices**: Speaker similarity matrices
+- **t-SNE Plots**: 2D visualization of 192-D speaker embeddings
+- **Training History**: Loss and accuracy curves over epochs
 
 ## 📊 Results
 
-Results will be saved in the `results/` directory:
+### Performance Comparison
+
+| Configuration              | Data Split         | Train Files | Test Files | Test EER  | Accuracy  | Validation EER |
+| -------------------------- | ------------------ | ----------- | ---------- | --------- | --------- | -------------- |
+| **Balanced** (Recommended) | 80/20 per speaker  | 13,725      | 3,605      | **7.88%** | **88.7%** | 4.41%          |
+| Imbalanced Baseline        | Train/ folder only | 1,053       | 8,775      | 24.90%    | 62.5%     | 8.96%          |
+
+**Improvement**: **68.4% relative improvement** in EER (24.90% → 7.88%)
+
+### Demo Testing Results
+
+**Genuine Verification (Speaker 1034 vs 1034):**
+
+- 10 test samples
+- 10/10 correct acceptances (100% accuracy)
+- Similarity scores: 0.5071 to 0.7101
+- All above threshold (0.50)
+
+**Impostor Detection (Speaker 1034 vs 1037):**
+
+- 4 test samples
+- 4/4 correct rejections (100% accuracy)
+- Similarity scores: -0.0598 to 0.0589
+- All below threshold (0.50)
+
+### Output Files
+
+Results saved in `results/` directory:
 
 ```
 results/
-├── ecapa_results.txt          # EER, minDCF metrics
-├── ecapa_roc_curve.png        # ROC curve
-├── ecapa_score_distribution.png  # Score histogram
-├── ecapa_tsne.png             # t-SNE visualization
-├── titanet_results.txt
-├── titanet_roc_curve.png
-├── titanet_score_distribution.png
-└── titanet_tsne.png
+├── ecapa_results.txt               # Detailed metrics
+├── ecapa_roc_curve.png             # ROC curve (AUC visualization)
+├── ecapa_score_distribution.png    # Genuine vs impostor histograms
+└── ecapa_tsne.png                  # Embedding space visualization
 ```
 
-### Expected Performance (on similar datasets)
+### Key Findings
 
-| Model      | EER (%) | minDCF    |
-| ---------- | ------- | --------- |
-| ECAPA-TDNN | 2-4%    | 0.15-0.25 |
-| TiTANet    | 1.5-3%  | 0.12-0.20 |
+1. ✅ **Balanced data distribution is critical**: 68.4% improvement over imbalanced baseline
+2. ✅ **Two-stage fine-tuning works well**: Frozen encoder prevents catastrophic forgetting
+3. ✅ **ECAPA-TDNN generalizes to regional languages**: Despite training on English (VoxCeleb2)
+4. ✅ **8 kHz sampling sufficient**: Telephone quality audio works for speaker verification
+5. ✅ **Augmentation helps**: Speed/noise/reverb improves robustness
 
-_Note: Actual results depend on dataset quality and training_
+## 🎤 Demo
+
+### Interactive Verification
+
+The `demo.py` script provides easy-to-use speaker verification:
+
+**Single Verification:**
+
+```bash
+python demo.py single \
+    --model checkpoints/ecapa_balanced/best_model.pt \
+    --enroll data/Train/1034/1034_trn_vp_a_1.wav \
+    --test data/Test/1034/1034_tst_vp_a_001.wav
+```
+
+**Batch Verification:**
+
+```bash
+python demo.py batch \
+    --model checkpoints/ecapa_balanced/best_model.pt \
+    --enroll-dir data/Train/1034 \
+    --test-dir data/Test/1034
+```
+
+**Custom Threshold:**
+
+```bash
+python demo.py batch \
+    --model checkpoints/ecapa_balanced/best_model.pt \
+    --enroll-dir data/Train/1034 \
+    --test-dir data/Test/1034 \
+    --thresholds 0.3 0.5 0.7
+```
+
+### Demo Features
+
+- ✅ Enrollment from multiple audio samples (average embedding)
+- ✅ Batch testing against multiple files
+- ✅ Multiple threshold evaluation
+- ✅ Visual feedback (✓/✗) for each verification
+- ✅ Accuracy reporting for genuine and impostor trials
 
 ## 🔧 Troubleshooting
 
 ### Out of Memory Errors
 
-- Reduce batch size in config file
-- Enable gradient accumulation
-- Use mixed precision training
+```yaml
+# In config file, reduce batch size
+batch_size: 16 # or 8
+```
 
 ### Slow Training
 
-- Increase number of workers
-- Enable pin_memory
-- Use DataLoader prefetch
-- Check GPU utilization
+```yaml
+# Increase DataLoader workers
+num_workers: 4
+pin_memory: true
+```
 
 ### Poor Performance
 
-- Increase training epochs
-- Adjust learning rate
-- Enable more augmentation
-- Check data quality
+- ✅ Ensure `use_combined_dataset: true` for balanced splitting
+- ✅ Check `train_split: 0.8` for proper 80/20 ratio
+- ✅ Verify audio files are 8 kHz mono WAV format
+- ✅ Increase epochs if underfitting
+- ✅ Enable data augmentation
+
+### CUDA Out of Memory
+
+```python
+# Reduce batch size or use CPU
+device = 'cpu'  # in config
+```
 
 ## 📚 References
 
 ### ECAPA-TDNN
 
-```
+```bibtex
 @inproceedings{desplanques2020ecapa,
   title={ECAPA-TDNN: Emphasized Channel Attention, Propagation and Aggregation in TDNN Based Speaker Verification},
   author={Desplanques, Brecht and Thienpondt, Jenthe and Demuynck, Kris},
@@ -369,47 +545,72 @@ _Note: Actual results depend on dataset quality and training_
 }
 ```
 
-### TiTANet
-
-```
-@article{koluguri2022titanet,
-  title={Titanet: Neural model for speaker representation with 1d depth-wise separable convolutions and global context},
-  author={Koluguri, Nithin and Park, Taejin and Ginsburg, Boris},
-  journal={arXiv preprint arXiv:2110.04410},
-  year={2022}
-}
-```
-
 ### SpeechBrain
 
-```
+```bibtex
 @misc{speechbrain,
   title={{SpeechBrain}: A General-Purpose Speech Toolkit},
-  author={Ravanelli, Mirco and others},
+  author={Ravanelli, Mirco and Parcollet, Titouan and others},
   howpublished={\url{https://speechbrain.github.io/}},
   year={2021}
 }
 ```
 
-## 📝 License
+### AAM-Softmax Loss
 
-This project is for research and educational purposes. Please cite appropriately if used in publications.
+```bibtex
+@inproceedings{deng2019arcface,
+  title={Arcface: Additive angular margin loss for deep face recognition},
+  author={Deng, Jiankang and Guo, Jia and Xue, Niannan and Zafeiriou, Stefanos},
+  booktitle={CVPR},
+  year={2019}
+}
+```
+
+## 📝 Citation
+
+If you use this project in your research, please cite:
+
+```bibtex
+@misc{speaker_verification_regional,
+  title={Speaker Verification System for Regional Languages (Hindi and Kannada)},
+  author={Shrusti-04},
+  year={2025},
+  howpublished={\url{https://github.com/Shrusti-04/Speaker-Verification}}
+}
+```
+
+## 📄 License
+
+This project is for research and educational purposes.
 
 ## 👥 Contributors
 
-- Research Team: Speaker Verification for Regional Languages
+- **Shrusti** - Implementation and Research
 
 ## 🙏 Acknowledgments
 
-- SpeechBrain team for ECAPA-TDNN implementation
-- NVIDIA NeMo team for TiTANet model
-- VoxCeleb dataset creators
-- Regional language dataset contributors
+- SpeechBrain team for ECAPA-TDNN pretrained models
+- VoxCeleb dataset creators for pretraining data
+- Regional language dataset contributors (Hindi/Kannada)
+- Google Colab for free GPU access (Tesla T4)
 
 ## 📧 Contact
 
-For questions or issues, please open a GitHub issue or contact the research team.
+For questions or issues:
+
+- Open a [GitHub Issue](https://github.com/Shrusti-04/Speaker-Verification/issues)
+- Repository: [https://github.com/Shrusti-04/Speaker-Verification](https://github.com/Shrusti-04/Speaker-Verification)
 
 ---
 
-**Note**: This is a research project. Performance may vary based on dataset quality, hardware, and hyperparameters. Always validate on your specific use case.
+## 🌟 Highlights
+
+- ✅ **7.88% EER** on Hindi/Kannada speaker verification
+- ✅ **68.4% improvement** over imbalanced baseline
+- ✅ **100% demo accuracy** on test samples
+- ✅ **Production-ready** with interactive demo
+- ✅ **Well-documented** with comprehensive guides
+- ✅ **Balanced data strategy** for optimal performance
+
+**This project demonstrates the critical importance of proper data distribution in speaker verification systems!**
