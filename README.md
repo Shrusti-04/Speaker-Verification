@@ -273,25 +273,37 @@ Measures similarity between speaker embeddings:
 
 ![Training History](paper/figures/training_history.png)
 
-_Training and validation loss/accuracy curves over 15 epochs showing two-stage fine-tuning (encoder frozen until epoch 5, then fully trained)_
+*Training and validation loss/accuracy curves over 15 epochs showing two-stage fine-tuning (encoder frozen until epoch 5, then fully trained)*
 
 ### ROC Curve
 
 ![ROC Curve](results/ecapa_roc_curve.png)
 
-_Receiver Operating Characteristic curve showing the trade-off between True Positive Rate and False Positive Rate at different thresholds_
+*Receiver Operating Characteristic curve showing the trade-off between True Positive Rate and False Positive Rate at different thresholds*
+
+### DET Curve
+
+![DET Curve](results/ecapa_det_curve.png)
+
+*Detection Error Tradeoff curve showing False Rejection Rate vs False Acceptance Rate on logarithmic scale, alternative view optimized for low error rates*
 
 ### Score Distribution
 
 ![Score Distribution](results/ecapa_score_distribution.png)
 
-_Distribution of cosine similarity scores for genuine (same speaker) and impostor (different speaker) pairs, demonstrating clear separation_
+*Distribution of cosine similarity scores for genuine (same speaker) and impostor (different speaker) pairs, demonstrating clear separation*
 
 ### t-SNE Embedding Visualization
 
 ![t-SNE Visualization](results/ecapa_tsne.png)
 
-_2D visualization of 192-dimensional speaker embeddings using t-SNE, showing distinct clustering of different speakers_
+*2D visualization of 192-dimensional speaker embeddings using t-SNE, showing distinct clustering of different speakers*
+
+### PCA Embedding Visualization
+
+![PCA Visualization](results/ecapa_pca.png)
+
+*2D PCA projection of speaker embeddings showing the first two principal components with explained variance, demonstrating linear separability*
 
 ## 📚 References
 

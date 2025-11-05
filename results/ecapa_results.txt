@@ -2,9 +2,9 @@ ECAPA Evaluation Results
 ============================================================
 
 eer: 0.0787999999999519
-eer_threshold: 0.18045780062675476
+eer_threshold: 0.1804586499929428
 minDCF: 0.4731999999999999
-dcf_threshold: 0.38528525829315186
+dcf_threshold: 0.3852854371070862
 accuracy_at_eer: 0.9212
 far_at_eer: 0.0788
 frr_at_eer: 0.0788

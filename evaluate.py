@@ -14,13 +14,15 @@ import matplotlib.pyplot as plt
 # Import project modules
 from src.dataset import SpeakerVerificationDataset, PairwiseVerificationDataset
 from src.models.ecapa_tdnn import ECAPA_TDNN_Wrapper
-from src.models.titanet import TiTANet_Wrapper
 from src.evaluation import (
     VerificationMetrics, compute_eer, compute_minDCF,
     compute_cosine_similarity, print_metrics
 )
 from src.verification import CosineScorer, PLDAScorer
-from src.visualization import plot_tsne, plot_roc_curve, plot_score_distribution
+from src.visualization import (
+    plot_tsne, plot_pca, plot_roc_curve, 
+    plot_det_curve, plot_score_distribution, plot_confusion_matrix
+)
 from sklearn.metrics import roc_curve
 
 
@@ -71,12 +73,6 @@ class Evaluator:
         """Initialize and load model"""
         if self.model_type == "ecapa":
             self.model = ECAPA_TDNN_Wrapper(
-                embedding_dim=self.config['model']['embedding_dim'],
-                num_speakers=self.config['dataset']['total_speakers'],
-                pretrained_path=self.config['model']['pretrained_path']
-            )
-        elif self.model_type == "titanet":
-            self.model = TiTANet_Wrapper(
                 embedding_dim=self.config['model']['embedding_dim'],
                 num_speakers=self.config['dataset']['total_speakers'],
                 pretrained_path=self.config['model']['pretrained_path']
@@ -269,6 +265,14 @@ class Evaluator:
             save_path=f"results/{self.model_type}_roc_curve.png"
         )
         
+        # Plot DET curve
+        fnr = 1 - tpr
+        plot_det_curve(
+            fpr, fnr, results['eer'],
+            title=f"{self.model_type.upper()} DET Curve",
+            save_path=f"results/{self.model_type}_det_curve.png"
+        )
+        
         # Plot score distribution
         genuine_scores = scores[targets == 1]
         impostor_scores = scores[targets == 0]
@@ -279,33 +283,77 @@ class Evaluator:
             save_path=f"results/{self.model_type}_score_distribution.png"
         )
         
-        return results
+        return results, test_embeddings, test_labels
     
-    def visualize_embeddings(self):
-        """Create t-SNE visualization of embeddings"""
-        print("\nCreating t-SNE visualization...")
+    def visualize_embeddings(self, embeddings=None, labels=None, speaker_ids=None):
+        """Create visualizations of embeddings"""
+        print("\nCreating embedding visualizations...")
         
-        # Extract embeddings
-        embeddings, labels, speaker_ids = self.extract_all_embeddings(
-            self.test_dataset
-        )
+        # Extract embeddings if not provided
+        if embeddings is None:
+            embeddings, labels, speaker_ids = self.extract_all_embeddings(
+                self.test_dataset
+            )
         
         # Sample speakers if too many
         unique_labels = np.unique(labels)
-        if len(unique_labels) > 50:
-            print(f"Sampling 50 speakers from {len(unique_labels)} for visualization")
-            selected_speakers = np.random.choice(unique_labels, size=50, replace=False)
+        max_speakers_viz = 50
+        
+        if len(unique_labels) > max_speakers_viz:
+            print(f"Sampling {max_speakers_viz} speakers from {len(unique_labels)} for visualization")
+            selected_speakers = np.random.choice(unique_labels, size=max_speakers_viz, replace=False)
             mask = np.isin(labels, selected_speakers)
-            embeddings = embeddings[mask]
-            labels = labels[mask]
+            viz_embeddings = embeddings[mask]
+            viz_labels = labels[mask]
+        else:
+            viz_embeddings = embeddings
+            viz_labels = labels
         
         # Create t-SNE plot
+        print("Creating t-SNE visualization...")
         plot_tsne(
-            embeddings, labels,
+            viz_embeddings, viz_labels,
             title=f"{self.model_type.upper()} Speaker Embeddings (t-SNE)",
             save_path=f"results/{self.model_type}_tsne.png",
-            perplexity=min(30, len(embeddings) // 5)
+            perplexity=min(30, len(viz_embeddings) // 5)
         )
+        
+        # Create PCA plot (2D)
+        print("Creating PCA visualization (2D)...")
+        plot_pca(
+            viz_embeddings, viz_labels,
+            title=f"{self.model_type.upper()} Speaker Embeddings (PCA)",
+            save_path=f"results/{self.model_type}_pca.png",
+            n_components=2
+        )
+        
+        # Create similarity matrix (for subset of speakers)
+        if len(unique_labels) <= 30:
+            print("Creating similarity matrix...")
+            # Compute average embedding per speaker
+            speaker_embeddings = []
+            speaker_list = []
+            for label in unique_labels:
+                mask = labels == label
+                avg_emb = embeddings[mask].mean(axis=0)
+                speaker_embeddings.append(avg_emb)
+                speaker_list.append(str(label))
+            
+            speaker_embeddings = np.array(speaker_embeddings)
+            
+            # Compute pairwise similarities
+            from sklearn.metrics.pairwise import cosine_similarity
+            similarity_matrix = cosine_similarity(speaker_embeddings)
+            
+            # Plot
+            plot_confusion_matrix(
+                similarity_matrix,
+                speaker_list,
+                title=f"{self.model_type.upper()} Speaker Similarity Matrix",
+                save_path=f"results/{self.model_type}_similarity_matrix.png"
+            )
+        else:
+            print(f"Skipping similarity matrix (too many speakers: {len(unique_labels)})")
     
     def evaluate_all(self):
         """Run complete evaluation"""
@@ -316,11 +364,11 @@ class Evaluator:
         if self.scorer_type == "plda":
             self.fit_plda()
         
-        # Evaluate verification
-        results = self.evaluate_verification()
+        # Evaluate verification (now returns embeddings too)
+        results, embeddings, labels = self.evaluate_verification()
         
-        # Create visualizations
-        self.visualize_embeddings()
+        # Create visualizations (reuse extracted embeddings)
+        self.visualize_embeddings(embeddings, labels, None)
         
         # Save results
         results_path = f"results/{self.model_type}_results.txt"
@@ -347,7 +395,7 @@ def main():
     )
     parser.add_argument(
         '--model', type=str, default='ecapa',
-        choices=['ecapa', 'titanet'],
+        choices=['ecapa'],
         help='Model type'
     )
     parser.add_argument(

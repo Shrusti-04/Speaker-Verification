@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.manifold import TSNE
+from sklearn.decomposition import PCA
 from typing import Optional, List, Tuple
 import torch
 
@@ -91,6 +92,123 @@ def plot_tsne(
     plt.show()
     
     return embeddings_2d
+
+
+def plot_pca(
+    embeddings: np.ndarray,
+    labels: np.ndarray,
+    title: str = "PCA Visualization of Speaker Embeddings",
+    save_path: Optional[str] = None,
+    n_components: int = 2,
+    random_state: int = 42,
+    figsize: Tuple[int, int] = (12, 10)
+):
+    """
+    Create PCA visualization of speaker embeddings
+    
+    Args:
+        embeddings: Speaker embeddings (n_samples, embedding_dim)
+        labels: Speaker labels (n_samples,)
+        title: Plot title
+        save_path: Path to save figure (optional)
+        n_components: Number of principal components (2 or 3)
+        random_state: Random seed
+        figsize: Figure size
+    
+    Returns:
+        embeddings_pca: Transformed embeddings
+    """
+    print(f"Computing PCA projection ({n_components} components)...")
+    
+    # Compute PCA
+    pca = PCA(n_components=n_components, random_state=random_state)
+    embeddings_pca = pca.fit_transform(embeddings)
+    
+    # Print explained variance
+    explained_var = pca.explained_variance_ratio_
+    total_var = np.sum(explained_var) * 100
+    print(f"Explained variance: {', '.join([f'{v*100:.2f}%' for v in explained_var])}")
+    print(f"Total explained variance: {total_var:.2f}%")
+    
+    # Create plot
+    if n_components == 2:
+        plt.figure(figsize=figsize)
+        
+        # Get unique labels and assign colors
+        unique_labels = np.unique(labels)
+        n_speakers = len(unique_labels)
+        
+        # Use a colormap
+        if n_speakers <= 20:
+            colors = plt.cm.tab20(np.linspace(0, 1, n_speakers))
+        else:
+            colors = plt.cm.viridis(np.linspace(0, 1, n_speakers))
+        
+        # Plot each speaker
+        for i, label in enumerate(unique_labels):
+            mask = labels == label
+            plt.scatter(
+                embeddings_pca[mask, 0],
+                embeddings_pca[mask, 1],
+                c=[colors[i]],
+                label=f'Speaker {label}' if n_speakers <= 20 else None,
+                alpha=0.6,
+                s=50
+            )
+        
+        plt.title(f"{title}\n(Explained Variance: {total_var:.2f}%)", 
+                  fontsize=16, fontweight='bold')
+        plt.xlabel(f'PC1 ({explained_var[0]*100:.2f}%)', fontsize=12)
+        plt.ylabel(f'PC2 ({explained_var[1]*100:.2f}%)', fontsize=12)
+        
+        if n_speakers <= 20:
+            plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
+        
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+    
+    elif n_components == 3:
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_subplot(111, projection='3d')
+        
+        unique_labels = np.unique(labels)
+        n_speakers = len(unique_labels)
+        
+        if n_speakers <= 20:
+            colors = plt.cm.tab20(np.linspace(0, 1, n_speakers))
+        else:
+            colors = plt.cm.viridis(np.linspace(0, 1, n_speakers))
+        
+        for i, label in enumerate(unique_labels):
+            mask = labels == label
+            ax.scatter(
+                embeddings_pca[mask, 0],
+                embeddings_pca[mask, 1],
+                embeddings_pca[mask, 2],
+                c=[colors[i]],
+                label=f'Speaker {label}' if n_speakers <= 20 else None,
+                alpha=0.6,
+                s=50
+            )
+        
+        ax.set_title(f"{title}\n(Explained Variance: {total_var:.2f}%)", 
+                     fontsize=16, fontweight='bold')
+        ax.set_xlabel(f'PC1 ({explained_var[0]*100:.2f}%)', fontsize=11)
+        ax.set_ylabel(f'PC2 ({explained_var[1]*100:.2f}%)', fontsize=11)
+        ax.set_zlabel(f'PC3 ({explained_var[2]*100:.2f}%)', fontsize=11)
+        
+        if n_speakers <= 20:
+            ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
+        
+        plt.tight_layout()
+    
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"Figure saved to {save_path}")
+    
+    plt.close()
+    
+    return embeddings_pca
 
 
 def plot_confusion_matrix(
