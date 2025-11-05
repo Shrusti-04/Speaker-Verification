@@ -305,43 +305,6 @@ _2D visualization of 192-dimensional speaker embeddings using t-SNE, showing dis
 
 _2D PCA projection of speaker embeddings showing the first two principal components with explained variance, demonstrating linear separability_
 
-## 📚 References
-
-### ECAPA-TDNN
-
-```bibtex
-@inproceedings{desplanques2020ecapa,
-  title={ECAPA-TDNN: Emphasized Channel Attention, Propagation and Aggregation in TDNN Based Speaker Verification},
-  author={Desplanques, Brecht and Thienpondt, Jenthe and Demuynck, Kris},
-  booktitle={INTERSPEECH},
-  year={2020}
-}
-```
-
-### SpeechBrain
-
-```bibtex
-@misc{speechbrain,
-  title={{SpeechBrain}: A General-Purpose Speech Toolkit},
-  author={Ravanelli, Mirco and Parcollet, Titouan and others},
-  howpublished={\url{https://speechbrain.github.io/}},
-  year={2021}
-}
-```
-
-### AAM-Softmax Loss
-
-```bibtex
-@inproceedings{deng2019arcface,
-  title={Arcface: Additive angular margin loss for deep face recognition},
-  author={Deng, Jiankang and Guo, Jia and Xue, Niannan and Zafeiriou, Stefanos},
-  booktitle={CVPR},
-  year={2019}
-}
-```
-
----
-
 ## 🌟 Project Highlights
 
 - ✅ **7.88% EER** on Hindi/Kannada speaker verification
