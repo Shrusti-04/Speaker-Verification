@@ -271,39 +271,39 @@ Measures similarity between speaker embeddings:
 
 ### Training History
 
-![Training History](paper/figures/training_history.png)
+![Training History](logs/ecapa_balanced/training_history.png)
 
-*Training and validation loss/accuracy curves over 15 epochs showing two-stage fine-tuning (encoder frozen until epoch 5, then fully trained)*
+_Training and validation loss/accuracy curves over 15 epochs showing two-stage fine-tuning (encoder frozen until epoch 5, then fully trained)_
 
 ### ROC Curve
 
 ![ROC Curve](results/ecapa_roc_curve.png)
 
-*Receiver Operating Characteristic curve showing the trade-off between True Positive Rate and False Positive Rate at different thresholds*
+_Receiver Operating Characteristic curve showing the trade-off between True Positive Rate and False Positive Rate at different thresholds_
 
 ### DET Curve
 
 ![DET Curve](results/ecapa_det_curve.png)
 
-*Detection Error Tradeoff curve showing False Rejection Rate vs False Acceptance Rate on logarithmic scale, alternative view optimized for low error rates*
+_Detection Error Tradeoff curve showing False Rejection Rate vs False Acceptance Rate on logarithmic scale, alternative view optimized for low error rates_
 
 ### Score Distribution
 
 ![Score Distribution](results/ecapa_score_distribution.png)
 
-*Distribution of cosine similarity scores for genuine (same speaker) and impostor (different speaker) pairs, demonstrating clear separation*
+_Distribution of cosine similarity scores for genuine (same speaker) and impostor (different speaker) pairs, demonstrating clear separation_
 
 ### t-SNE Embedding Visualization
 
 ![t-SNE Visualization](results/ecapa_tsne.png)
 
-*2D visualization of 192-dimensional speaker embeddings using t-SNE, showing distinct clustering of different speakers*
+_2D visualization of 192-dimensional speaker embeddings using t-SNE, showing distinct clustering of different speakers_
 
 ### PCA Embedding Visualization
 
 ![PCA Visualization](results/ecapa_pca.png)
 
-*2D PCA projection of speaker embeddings showing the first two principal components with explained variance, demonstrating linear separability*
+_2D PCA projection of speaker embeddings showing the first two principal components with explained variance, demonstrating linear separability_
 
 ## 📚 References
 
