@@ -37,36 +37,11 @@ This project implements a state-of-the-art speaker verification system designed 
 
 ## ✨ Features
 
-### Data Processing
-
-- ✅ Balanced per-speaker 80/20 split (13,725 train / 3,605 test files)
-- ✅ Automatic audio preprocessing (8kHz mono)
-- ✅ Variable-length audio handling (2-10 seconds)
-- ✅ Speaker-based data organization (351 speakers)
-
-### Data Augmentation
-
-- ✅ Speed perturbation (0.95x, 1.0x, 1.05x)
-- ✅ Additive white noise (SNR 0-15 dB)
-- ✅ Reverberation simulation
-
-### Model Training
-
+- ✅ Balanced per-speaker 80/20 split (13,725 train / 3,605 test)
+- ✅ Data augmentation (speed perturbation, noise, reverberation)
 - ✅ Pretrained ECAPA-TDNN from VoxCeleb2
-- ✅ Two-stage fine-tuning (frozen encoder → full training)
-- ✅ AAM-Softmax loss with margin=0.2, scale=30
-- ✅ Adam optimizer with lr=0.0001
-- ✅ Automatic checkpoint saving (best validation accuracy)
-- ✅ Training history visualization
-
-### Evaluation
-
-- ✅ Equal Error Rate (EER) computation
-- ✅ Accuracy metrics on test set
-- ✅ ROC curves with visualization
-- ✅ Score distribution plots (genuine vs impostor)
-- ✅ t-SNE embedding space visualization
-- ✅ Batch verification for multiple samples
+- ✅ Two-stage fine-tuning with AAM-Softmax loss
+- ✅ Comprehensive evaluation (EER, ROC, t-SNE, PCA visualizations)
 
 ## 🚀 Getting Started
 
@@ -143,93 +118,28 @@ Speaker-Verification/
   - Bit depth: 16-bit
   - Format: WAV
 
-### Dataset Structure
-
-```
-data/
-├── Train/
-│   ├── 1034/
-│   │   ├── 1034_trn_vp_a_1.wav
-│   │   └── ... (~49 files)
-│   └── ... (351 speakers)
-└── Test/
-    ├── 1034/
-    │   ├── 1034_tst_vp_a_001.wav
-    │   └── ... (~49 files)
-    └── ... (351 speakers)
-```
-
 **Note**: Both Train/ and Test/ folders are combined and re-split 80/20 per speaker for balanced distribution.
 
 ## 🏗️ Model Architecture
 
 ### ECAPA-TDNN (Emphasized Channel Attention, Propagation and Aggregation in TDNN)
 
-The system uses the **ECAPA-TDNN** architecture, a state-of-the-art speaker embedding model that significantly improves upon the original x-vector TDNN architecture.
+State-of-the-art speaker embedding model with channel attention and multi-scale processing.
 
-#### Key Components
+**Architecture Pipeline:**
 
-**1. Frame-level Feature Extraction**
+- **Input**: 80-dim Mel-filterbank features (8 kHz)
+- **Conv1D + SE-Res2Blocks**: 3 blocks with squeeze-excitation attention, dilation rates [2,3,4]
+- **Attentive Statistics Pooling**: Learned attention for variable-length aggregation
+- **Embedding Layer**: 1536 → 192 dimensions with batch normalization
+- **AAM-Softmax Loss**: Margin=0.2, Scale=30 (training only)
 
-- **Input**: 80-dimensional Mel-filterbank features (8 kHz sampling)
-- **Conv1D Layer**: Initial 1D convolutional layer (512 channels, kernel size=5)
-- **SE-Res2Blocks**: 3 Squeeze-and-Excitation Res2Net blocks with channel attention
-  - Scale-dimension: 8 (multi-scale receptive fields)
-  - Dilation rates: 2, 3, 4 (increasing temporal context)
-  - SE attention: Recalibrates channel-wise features
+**Model Specs:**
 
-**2. Channel Attention Mechanism**
-
-- **Squeeze-and-Excitation (SE)**: Enhances important acoustic features
-- **Multi-scale Processing**: Res2Net blocks capture diverse temporal patterns
-- **Channel Propagation**: Information flow across feature channels
-
-**3. Statistical Pooling**
-
-- **Attentive Statistics Pooling (ASP)**: Learned attention mechanism
-- Aggregates variable-length audio into fixed-size embeddings
-- Combines mean and standard deviation statistics
-- Weighted by attention scores for relevant frames
-
-**4. Embedding Layer**
-
-- **Fully Connected Layers**: 1536 → 192 dimensions
-- **Batch Normalization**: Stabilizes training
-- **Output**: 192-dimensional speaker embeddings
-- **L2 Normalization**: Unit-length embeddings for cosine similarity
-
-**5. Classification Head (Training Only)**
-
-- **AAM-Softmax Loss**: Additive Angular Margin Softmax
-  - Margin: 0.2 (angular separation between speakers)
-  - Scale: 30 (controls gradient flow)
-  - Creates discriminative decision boundaries
-- **Linear Layer**: 192 → 351 speakers
-
-#### Architecture Advantages
-
-✅ **Channel Attention**: Emphasizes discriminative acoustic features  
-✅ **Multi-scale Processing**: Captures both short-term and long-term patterns  
-✅ **Efficient Embeddings**: Compact 192-D representation  
-✅ **Transfer Learning**: Pretrained on VoxCeleb2 (1M+ utterances)  
-✅ **Robustness**: Attentive pooling handles variable-length audio
-
-#### Model Parameters
-
-- **Embedding Dimension**: 192
-- **Channels**: 512, 512, 512, 1536, 192
-- **SE-Res2Block Scales**: 8
-- **Total Parameters**: ~6.3M
-- **Input**: 80-dim MFBs at 8 kHz
-- **Output**: 192-dim embeddings
-
-#### Pretrained Weights
-
-The model is initialized with weights pretrained on **VoxCeleb2**:
-
-- Dataset: 1M+ utterances from 6K+ speakers
-- Language: English (cross-lingual transfer to Hindi/Kannada)
-- Training: Large-scale speaker recognition on diverse audio
+- Embedding dimension: 192-D
+- Total parameters: ~6.3M
+- Pretrained on VoxCeleb2 (1M+ utterances, 6K+ speakers)
+- Cross-lingual transfer: English → Hindi/Kannada
 
 ## 🔬 Training Strategy
 
