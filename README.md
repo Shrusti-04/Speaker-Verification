@@ -96,33 +96,6 @@ cd Speaker-Verification
 
 **Note:** Without Git LFS, checkpoint files will be downloaded as small pointer files and the models won't work.
 
-### Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-**Key Dependencies:**
-
-- `torch>=2.0.0` - PyTorch deep learning framework
-- `torchaudio>=2.0.0` - Audio processing
-- `speechbrain>=0.5.0` - ECAPA-TDNN pretrained models
-- `scikit-learn>=1.3.0` - Evaluation metrics
-- `matplotlib>=3.7.0` - Visualization
-
-### Verify Setup
-
-```bash
-# Check if checkpoint files downloaded correctly
-ls -lh checkpoints/ecapa_balanced/best_model.pt  # Should show ~244 MB
-
-# Quick test
-python demo.py single \
-    --model checkpoints/ecapa_balanced/best_model.pt \
-    --enroll data/Train/1034/1034_trn_vp_a_1.wav \
-    --test data/Test/1034/1034_tst_vp_a_001.wav
-```
-
 ## 📁 Project Structure
 
 ```
